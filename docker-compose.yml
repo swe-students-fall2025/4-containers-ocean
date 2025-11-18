@@ -2,18 +2,40 @@ version: '3.9'
 
 services:
   mongodb:
-    image: mongo
-    container_name: mongodb
+    image: mongo:6.0
+    container_name: emotion_mongodb
     ports:
       - "27017:27017"
-
-  ml-client:
-    build: ./machine-learning-client
-    container_name: ml-client
-    command: ["python", "ml_client.py"]
+    volumes:
+      - mongo_data:/data/db
 
   web-app:
     build: ./web-app
-    container_name: web-app
+    container_name: emotion_web
     ports:
       - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/emotiondb
+      - UPLOAD_DIR=/data/uploads
+    volumes:
+      - shared-audio:/data/uploads
+    depends_on:
+      - mongodb
+
+  ml-client:
+    build: ./machine-learning-client
+    container_name: emotion_ml
+    command: ["python", "ml_client.py"]
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/emotiondb
+      - AUDIO_DIR=/data/uploads
+    volumes:
+      - shared-audio:/data/uploads
+    depends_on:
+      - mongodb
+    # Note for groupmates: if ml-client isn't ready yet you can start services without it:
+    # docker compose up mongodb web-app
+
+volumes:
+  mongo_data:
+  shared-audio:
