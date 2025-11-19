@@ -1,0 +1,48 @@
+{% set emoji_map = {'happy/excited': '😊', 'neutral': '😐', 'sad': '😢'} %}
+
+{% if last_emotion %}
+<div class="last-emotion-card">
+  <span class="last-emotion-label">Last emotion detected</span>
+  <div class="last-emotion-main">
+    <span class="last-emotion-emoji">
+      {{ emoji_map.get(last_emotion, '🙂') }}
+    </span>
+    <span>{{ last_emotion }}</span>
+  </div>
+
+  {% if last_time %}
+  <p class="last-emotion-time">
+    at {{ last_time.strftime('%Y-%m-%d %H:%M:%S') }} UTC
+  </p>
+  {% endif %}
+</div>
+{% endif %}
+
+<table>
+  <thead>
+    <tr>
+      <th>Emotion</th>
+      <th>Count</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for emotion, count in emotion_history.items() %}
+      {% set row_class = '' %}
+      {% if emotion == 'happy/excited' %}
+        {% set row_class = 'row-happy' %}
+      {% elif emotion == 'neutral' %}
+        {% set row_class = 'row-neutral' %}
+      {% elif emotion == 'sad' %}
+        {% set row_class = 'row-sad' %}
+      {% endif %}
+
+      <tr class="{{ row_class }}">
+        <td class="emotion-cell">
+          <span class="emotion-emoji">{{ emoji_map.get(emotion, '🙂') }}</span>
+          {{ emotion }}
+        </td>
+        <td>{{ count }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

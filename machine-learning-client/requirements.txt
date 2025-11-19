@@ -1,6 +1,0 @@
-﻿pymongo==4.6.3
-pydub==0.25.1
-numpy==1.26.4
-librosa==0.10.3.post2
-soundfile==0.12.1
-numba==0.57.2
