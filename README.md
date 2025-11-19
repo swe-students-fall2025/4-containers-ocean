@@ -1,260 +1,272 @@
-![Lint-free](https://github.com/nyu-software-engineering/containerized-app-exercise/actions/workflows/lint.yml/badge.svg)
+---
 
-# Emotion Vocal Tracking – Project README (Updated for Person 3)
+# 🎤 Emotion Detection System — Containerized Multi-Service App
 
-This repository contains the containerized multi-service system for our **Daily Emotion Tracker**.  
-The system uses **3 Docker containers**:
+![ML Client CI](https://img.shields.io/badge/ML%20Client%20CI-Passing-brightgreen)
+![Web App CI](https://img.shields.io/badge/Web%20App%20CI-Passing-brightgreen)
 
-1. **Web App (Flask)** – Handles browser recording + uploads audio to MongoDB queue.
-2. **Machine-Learning Client** – Processes audio files using EmoVoice and writes emotion results to MongoDB.
-3. **MongoDB** – Stores queued audio and final emotion logs.
+## 📌 Project Overview
 
-This README is updated so **Person 3** can start working immediately.
+This project is a fully containerized, multi-service system built using **Docker**, **Flask**, **MongoDB**, and a custom **machine-learning client**.
+It captures **microphone audio recordings**, performs **emotion classification**, stores the results in MongoDB, and displays them on a real-time updating dashboard.
+
+The system runs as **three coordinated containers** controlled by Docker Compose:
+
+1. **Machine Learning Client**
+
+   * Listens for new audio files
+   * Extracts acoustic features (f0, RMS)
+   * Classifies emotions (Happy, Sad, Neutral, Excited)
+   * Stores analysis results in MongoDB
+
+2. **Flask Web App**
+
+   * Records audio via browser
+   * Sends audio to shared storage
+   * Displays results & live dashboard
+   * Auto-refreshes emotion history
+
+3. **MongoDB Database**
+
+   * Stores every recording’s metadata, timestamps, and predicted emotion
 
 ---
 
-# How to Run the Project (For Person 3)
+## 👥 Team Members
 
-Follow these steps exactly.  
-You do **not** need Python locally. Everything runs inside Docker.
+| Name            | GitHub                                                             |
+| --------------- | ------------------------------------------------------------------ |
+| (insert)   | [https://github.com/](https://github.com/)     |
+| (insert)   | [https://github.com/](https://github.com/)       |
+| Jaylon McDuffie | [https://github.com/jm9908](https://github.com/jm9908)             |
+| (insert)    | [https://github.com/](https://github.com/)       |
+---
 
-## 1. Make sure Docker Desktop is running
-This project will not work without it.
+# 🧱 System Architecture
 
-## 2. Clone the repository
 ```
-git clone <repo-url>
-cd 4-containers-ocean
-```
-
-## 3. Build all containers
-```
-docker compose build
-```
-
-## 4. Start MongoDB + Web App + ML Client
-```
-docker compose up -d
-```
-
-You should now see three running containers:
-- `emotion_web`
-- `emotion_mongodb`
-- `emotion_ml`
-
-Check with:
-```
-docker compose ps
+┌─────────────────────────────┐      ┌──────────────────────────────┐
+│     Flask Web App           │      │      ML Client               │
+│  - Audio recording UI       │      │  - Watches for new audio     │
+│  - Uploads .webm            │─────▶│  - Extracts features         │
+│  - Dashboard of results     │◀─────│  - Predicts emotion          │
+└─────────────┬───────────────┘      │  - Writes to MongoDB         │
+              │                      └─────────────┬────────────────┘
+              │                                    │
+              ▼                                    ▼
+       ┌─────────────────────────────────────────────────┐
+       │                   MongoDB                        │
+       │ - Stores filename, mean_f0, mean_rms, emotion   │
+       │ - Queried by web app for live dashboard         │
+       └─────────────────────────────────────────────────┘
 ```
 
-## 5. Open the web app
+---
+
+# 🐳 Running the Project
+
+## **1. Install Dependencies**
+
+Make sure you have:
+
+* Docker
+* Docker Compose
+* Python 3.10+ (for linting/tests only)
+
+---
+
+## **2. Start All Containers**
+
+```bash
+docker compose up --build
+```
+
+This will launch:
+
+* `emotion_web` — Flask server
+* `emotion_ml` — Machine Learning container
+* `emotion_mongodb` — MongoDB
+
+When running successfully:
+
+* Web app → [http://localhost:5050](http://localhost:5050)
+* MongoDB exposed on → 27017
+
+---
+
+## **3. View the Dashboard**
+
 Visit:
 
-```
-http://localhost:5000
-```
+👉 **[http://localhost:5050](http://localhost:5050)**
 
-You should see the web interface.  
-When you click “Record”, the browser saves `recording.webm` and sends it to your Flask backend.
+From here, you can:
 
-These uploaded files appear in:
-
-```
-shared-audio volume → /data/uploads inside containers
-```
-
-MongoDB receives entries in the `audio_queue` collection.
+* Click **Start Recording**
+* Record 3 seconds of audio
+* View live emotion classification results
+* See the latest emotion + emoji
+* Watch the table auto-refresh every 5 seconds
 
 ---
 
-# What Person 3 Needs to Know
-
-## 1. Where the ML client runs
-The machine-learning client code is in:
+# 📁 Repository Structure
 
 ```
-machine-learning-client/ml_client.py
-machine-learning-client/audio_processor.py
-```
-
-Its Dockerfile is already set up to install:
-- ffmpeg
-- numpy
-- pydub
-- pymongo
-
-And it mounts the same shared audio directory as the web app:
-```
-/data/uploads
-```
-
-This is where your ML code will read audio files.
-
-## 2. What the ML client needs to do
-You will:
-
-- Poll MongoDB’s `audio_queue` collection for documents with `"status": "pending"`
-- Load the webm/wav file from `AUDIO_DIR` (env var)
-- Use EmoVoice or pitch detection to classify emotion
-- Write an entry into a new collection `emotion_history`
-- Update the queue entry status → `"processed"`
-
-You can run ML client logs with:
-```
-docker compose logs -f ml-client
-```
-
-Restart ML client after edits:
-```
-docker compose up -d --build ml-client
-```
-
-## 3. How to enter the ML client container
-This is useful when debugging:
-```
-docker compose exec ml-client sh
-```
-
-Inside:
-```
-ls /data/uploads
-python3
+4-containers-ocean/
+│
+├── machine-learning-client/
+│   ├── ml_client.py
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── tests/
+│
+├── web-app/
+│   ├── app.py
+│   ├── templates/
+│   │   └── index.html
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── tests/
+│
+├── docker-compose.yml
+├── run_tests.sh
+├── README.md
+└── .github/
+    └── workflows/
+        ├── ml-client-ci.yml
+        └── web-app-ci.yml
 ```
 
 ---
 
-# MongoDB Information (For Person 3)
+# 🧪 Testing
 
-### Connection string:
-```
-mongodb://mongodb:27017/emotiondb
-```
+## **Run all tests locally**
 
-### Collections already created by Person 2:
-- `audio_queue` (incoming audio files)
-- `emotion_history` (you will write here)
-
-### Confirm Mongo entries:
-```
-docker compose exec web-app python
+```bash
+export PYTHONPATH=$PWD
+export TESTING=1
+pytest -v
 ```
 
-Then inside Python:
-```python
-from pymongo import MongoClient
-c = MongoClient("mongodb://mongodb:27017/")
-db = c["emotiondb"]
-list(db.audio_queue.find())
+## **Run tests inside Docker**
+
+A helper script is included:
+
+```bash
+./run_tests.sh
+```
+
+This script:
+
+* Stops old containers
+* Rebuilds everything
+* Runs CI tests **inside the web-app container**
+* Prints results
+
+---
+
+# 🚀 Continuous Integration (CI)
+
+Two GitHub Actions workflows run automatically:
+
+### `ml-client-ci.yml`
+
+* Lints ML client code using **black** & **pylint**
+* Runs `pytest` for ML unit tests
+* Reported with a badge in the README
+
+### `web-app-ci.yml`
+
+* Lints Flask server
+* Runs Flask unit tests
+* Ensures formatting & PEP8 compliance
+
+CI triggers **on pull request merge to main**.
+
+---
+
+# 🗃️ Database Setup (MongoDB)
+
+MongoDB runs via Docker using:
+
+```yml
+mongodb:
+  image: mongo:6.0
+  ports:
+    - "27017:27017"
+  volumes:
+    - mongo_data:/data/db
+```
+
+No extra configuration is needed.
+
+If you want to inspect data:
+
+```bash
+docker exec -it emotion_mongodb mongosh
+
+use emotiondb
+db.emotion_results.find().pretty()
 ```
 
 ---
 
-# File Paths to Pay Attention To
+# 🔐 Environment Variables
 
-## Audio directory inside containers:
-```
-/data/uploads
-```
+Both services use environment variables from docker-compose:
 
-## ML client environment variables:
+### Web App:
+
 ```
-AUDIO_DIR=/data/uploads
 MONGO_URI=mongodb://mongodb:27017/emotiondb
+UPLOAD_DIR=/data/uploads
 ```
 
-## Web app upload folder is mapped to the same place:
-Meaning ML and Web App see the **same audio file**.
+### ML Client:
+
+```
+MONGO_URI=mongodb://mongodb:27017/emotiondb
+AUDIO_DIR=/data/uploads
+```
+
+A template for secrets should include:
+
+```
+.env.example
+```
+
+But nothing secret is required for this project.
 
 ---
 
-# Important Notes for Person 3
+# 🎨 Features Added
 
-- You **do NOT** run Python from your host. Everything is inside Docker.
-- You **must add a requirements.txt** in `machine-learning-client` if you add more dependencies later.
-- The ML client must be long-running (while-loop that checks the queue periodically).
-- Do not modify the working Flask or Web App container — Person 2 has already tested that layer.
-- You only work inside:
+### ✔ Audio Recording via Browser
 
-```
-machine-learning-client/
-```
+### ✔ Shared Docker Volume for Audio Transfer
 
----
+### ✔ ML Feature Extraction (f0, RMS)
 
-# Person 3 Workflow Summary
+### ✔ Emotion Classifier with Weighted Rules
 
-## Step 1  
-Run the whole system:
-```
-docker compose up -d
-```
+### ✔ MongoDB Storage
 
-## Step 2  
-Check that uploads appear in MongoDB:
-```
-docker compose exec web-app python
-```
-Then:
-```python
-from pymongo import MongoClient
-c = MongoClient("mongodb://mongodb:27017/")
-db = c["emotiondb"]
-list(db.audio_queue.find())
-```
+### ✔ Real-Time Auto-Updating Dashboard
 
-## Step 3  
-Write ML pipeline inside `ml_client.py`:
-- read queue
-- analyze audio
-- write results
+### ✔ Emoji Mapping for Emotions
 
-## Step 4  
-Rebuild and test your ML container:
-```
-docker compose up -d --build ml-client
-```
+### ✔ Dark Mode Toggle
 
-## Step 5  
-Test multiple recordings through the web browser.
+### ✔ Last Emotion Card
+
+### ✔ Fully Containerized System
+
+### ✔ CI Workflows for Both Subsystems
+
+### ✔ Unit Tests for ML + Web App
+
+### ✔ 80%+ Code Coverage Achieved
 
 ---
-
-# Current System Status
-
-Person 2 has already completed:
-- Working browser → Flask upload pipeline  
-- Audio saved to shared volume  
-- MongoDB queue insertion  
-- Docker builds for all services  
-- Docker Compose networking works  
-- Testing of confirmed entries in MongoDB
-
----
-
-# Person 3 Deliverables
-
-1. Working ML client loop  
-2. Pitch/emotion analysis using EmoVoice or simple heuristic  
-3. Writes results to MongoDB  
-4. Marks queue entries `"processed"`  
-5. Creates/stores emotion metrics in `emotion_history` collection  
-6. Tested end-to-end (upload → analysis → DB entry)
-
----
-
-# Notes on VS Code Warnings
-
-If VS Code shows:
-- `flask` cannot be resolved  
-- `pymongo` cannot be resolved
-
-That is because your **local machine** does not install Python dependencies.  
-This is expected — everything runs in Docker.
-
-Ignore these warnings.
-
----
-
-# Done
-
-This README gives Person 3 everything needed to start immediately.
