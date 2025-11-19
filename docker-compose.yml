@@ -13,7 +13,7 @@ services:
     build: ./web-app
     container_name: emotion_web
     ports:
-      - "5050:5000"
+      - "5000:5000"
     environment:
       - MONGO_URI=mongodb://mongodb:27017/emotiondb
       - UPLOAD_DIR=/data/uploads
