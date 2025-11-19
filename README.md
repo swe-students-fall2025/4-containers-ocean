@@ -56,6 +56,75 @@ http://localhost:5000
 
 - The dashboard displays all past recordings and their analyzed emotions.
 
+# 📂 MongoDB Collections & ML Workflow
+
+## 1. Collections
+
+---
+
+### **🗄️ audio_queue**
+
+Stores audio files uploaded by the web app.
+
+Each entry looks like:
+
+```json
+{
+  "_id": "<Mongo-generated id>",
+  "filename": "recording1.webm",
+  "status": "pending",
+  "timestamp": "<upload time>"
+}
+```
+
+The status field tells the ML client whether a file has already been processed.
+
+emotion_history
+
+Stores the results of the ML audio analysis.
+
+Each entry includes:
+
+```json
+{
+  "filename": "recording1.webm",
+  "emotion": "happy/Sad?neutral",
+  "mean_f0": "avg frequency",
+  "mean_rms": "AVG dynamic",
+  "timestamp": "<analysis time>"
+}
+```
+
+## The ML client queries audio_queue for documents where "status": "pending".
+
+- Process audio
+
+- Loads the file from the shared audio directory (AUDIO_DIR).
+
+- Converts .webm to .wav if needed.
+
+## Extracts features using librosa:
+
+Fundamental frequency (pitch) → mean_f0
+
+Energy → mean_rms
+
+Predicts emotion based on heuristics:
+
+High pitch & energy → happy/excited
+
+Low pitch & energy → sad
+
+Otherwise → neutral
+
+## Write results
+
+Inserts a new document into emotion_history with the filename, extracted features, predicted emotion, and timestamp.
+
+Update queue
+
+Sets the status of the processed audio in audio_queue to "processed" so it isn’t reprocessed.
+
 ## 📊 Dashboard Integration (Main Task for Person 4)
 
 The dashboard must allow users to:
