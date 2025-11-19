@@ -29,15 +29,23 @@ def compute_features(file_path):
 
 
 def predict_emotion(mean_f0, mean_rms):
+    """
+    Predict emotion based on mean pitch (f0) and loudness (RMS).
+    Thresholds are tuned to make emotions easier to trigger.
+    """
 
-    if mean_f0 > 170 and mean_rms > 0.015:
-        return "happy/excited"
+    # 🎉 HAPPY — Easier to get
+    # Lowering pitch threshold & RMS sensitivity
+    if mean_f0 > 120 and mean_rms > 0.008:
+        emotion = "happy"
 
-    # Sad detection remains the same
-    if mean_f0 < 150 and mean_rms < 0.01:
+
+    # 😢 SAD — Easier to get
+    # Raising pitch threshold & relaxing RMS requirement
+    if mean_f0 < 105  and mean_rms < 0.004:
         return "sad"
 
-    # Everything else
+    # 😐 Everything else → Neutral
     return "neutral"
 
 
