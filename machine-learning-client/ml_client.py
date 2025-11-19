@@ -1,6 +1,5 @@
 """Placeholder ML client module for project initialization."""
 
-
 import os
 from datetime import datetime
 from pymongo import MongoClient
@@ -12,37 +11,41 @@ import time
 MONGO_URI = os.environ.get("MONGO_URI", "mongodb://mongodb:27017/emotiondb")
 AUDIO_DIR = os.environ.get("AUDIO_DIR", "/data/uploads")
 
+
 def compute_features(file_path):
     # Load audio
     y, sr = librosa.load(file_path, sr=None)
+
     # Pitch (fundamental frequency) using pyin
     f0, voiced_flag, _ = librosa.pyin(y, fmin=50, fmax=500)
     mean_f0 = np.nanmean(f0) if f0 is not None else 0.0
 
     # Energy
     rms = librosa.feature.rms(y=y)
-    mean_rms = np.mean(rms)
+    mean_rms = float(np.mean(rms))
 
-    # Other features can be added here (MFCCs, spectral centroid, etc.)
+    # Send back simple features
     return mean_f0, mean_rms
 
+
 def predict_emotion(mean_f0, mean_rms):
-    """
-    Simple heuristic for demonstration:
-    - High pitch + high energy -> excited/happy
-    - Low pitch + low energy -> sad
-    - Otherwise -> neutral
-    """
-    if mean_f0 > 200 and mean_rms > 0.02:
+
+    if mean_f0 > 170 and mean_rms > 0.015:
         return "happy/excited"
-    elif mean_f0 < 150 and mean_rms < 0.01:
+
+    # Sad detection remains the same
+    if mean_f0 < 150 and mean_rms < 0.01:
         return "sad"
-    else:
-        return "neutral"
+
+    # Everything else
+    return "neutral"
+
+
 
 def process_audio_file(entry, db):
     filename = entry["filename"]
     input_path = os.path.join(AUDIO_DIR, filename)
+
     try:
         # Convert webm -> wav if needed
         if filename.endswith(".webm"):
@@ -56,25 +59,30 @@ def process_audio_file(entry, db):
         mean_f0, mean_rms = compute_features(wav_path)
         emotion_result = predict_emotion(mean_f0, mean_rms)
 
-        print(f"{filename}: Predicted emotion -> {emotion_result}")
-
-        # Save to emotion_history
-        db.emotion_history.insert_one({
-            "filename": filename,
-            "emotion": emotion_result,
-            "mean_f0": float(mean_f0),
-            "mean_rms": float(mean_rms),
-            "timestamp": datetime.utcnow()
-        })
-
-        # Update queue status
-        db.audio_queue.update_one(
-            {"_id": entry["_id"]},
-            {"$set": {"status": "processed"}}
+        # Simple log line in container logs
+        print(
+            f"{filename}: f0={mean_f0:.2f}, rms={mean_rms:.5f}, emotion={emotion_result}"
         )
 
-    except Exception as e:
-        print(f"Error processing {filename}: {e}")
+        # Save result to emotion_results collection
+        db.emotion_results.insert_one(
+            {
+                "filename": filename,
+                "emotion": emotion_result,
+                "mean_f0": float(mean_f0),
+                "mean_rms": float(mean_rms),
+                "timestamp": datetime.utcnow(),
+            }
+        )
+
+        # Mark queue entry as processed
+        db.audio_queue.update_one(
+            {"_id": entry["_id"]}, {"$set": {"status": "processed"}}
+        )
+
+    except Exception as exc:  # keep errors visible in logs
+        print(f"Error processing {filename}: {exc}")
+
 
 def main():
     client = MongoClient(MONGO_URI)
@@ -86,6 +94,7 @@ def main():
         for entry in pending_files:
             process_audio_file(entry, db)
         time.sleep(5)
+
 
 if __name__ == "__main__":
     main()

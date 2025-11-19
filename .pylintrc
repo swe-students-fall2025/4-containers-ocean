@@ -1,0 +1,6 @@
+[MASTER]
+ignore=tests
+
+[MESSAGES CONTROL]
+# Turn off noisy warnings so it's easy to read
+disable=C0114,C0115,C0116,C0103
