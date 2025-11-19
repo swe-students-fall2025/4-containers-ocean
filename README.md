@@ -29,9 +29,9 @@ The system runs as **3 coordinated containers** controlled by Docker Compose:
 
 | Name            | GitHub                                                              |
 | --------------- | ------------------------------------------------------------------  |
-| (kaiyuan wu)       | [https://github.com/qiexian-mf](https://github.com/qiexian-mf)      |
+| (kaiyuan wu)       | [https://github.com/qiexian-mf](https://github.com/qiexian-mf)   |
 | (Harrison Coon) |   [https://github.com/hoc2006-code](https://github.com/hoc2006-code)|
-| Jaylon McDuffie | [https://github.com/jm9908](https://github.com/jm9908)              |
+| (Jaylon McDuffie) | [https://github.com/jm9908](https://github.com/jm9908)            |
 | (Sam Murshed)   | [https://github.com/SamMurshed](https://github.com/SamMurshed)      |
 ---
 
