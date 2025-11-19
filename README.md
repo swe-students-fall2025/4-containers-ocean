@@ -1,48 +1,13 @@
----
-
-# 🎤 Emotion Detection System — Containerized Multi-Service App
+# 🎤 Emotion Detection System
 
 ![ML Client CI](https://img.shields.io/badge/ML%20Client%20CI-Passing-brightgreen)
 ![Web App CI](https://img.shields.io/badge/Web%20App%20CI-Passing-brightgreen)
 
-## 📌 Project Overview
+## Project Overview
 
-This project is a fully containerized, multi-service system built using **Docker**, **Flask**, **MongoDB**, and a custom **machine-learning client**.
-It captures **microphone audio recordings**, performs **emotion classification**, stores the results in MongoDB, and displays them on a real-time updating dashboard.
+This project captures **microphone audio recordings**, performs **emotion classification**, stores the results in MongoDB, and displays them on a real-time updating dashboard!
 
-The system runs as **three coordinated containers** controlled by Docker Compose:
-
-1. **Machine Learning Client**
-
-   * Listens for new audio files
-   * Extracts acoustic features (f0, RMS)
-   * Classifies emotions (Happy, Sad, Neutral, Excited)
-   * Stores analysis results in MongoDB
-
-2. **Flask Web App**
-
-   * Records audio via browser
-   * Sends audio to shared storage
-   * Displays results & live dashboard
-   * Auto-refreshes emotion history
-
-3. **MongoDB Database**
-
-   * Stores every recording’s metadata, timestamps, and predicted emotion
-
----
-
-## 👥 Team Members
-
-| Name            | GitHub                                                             |
-| --------------- | ------------------------------------------------------------------ |
-| (insert)   | [https://github.com/](https://github.com/)     |
-| (insert)   | [https://github.com/](https://github.com/)       |
-| Jaylon McDuffie | [https://github.com/jm9908](https://github.com/jm9908)             |
-| (insert)    | [https://github.com/](https://github.com/)       |
----
-
-# 🧱 System Architecture
+The system runs as **3 coordinated containers** controlled by Docker Compose:
 
 ```
 ┌─────────────────────────────┐      ┌──────────────────────────────┐
@@ -55,15 +20,22 @@ The system runs as **three coordinated containers** controlled by Docker Compose
               │                                    │
               ▼                                    ▼
        ┌─────────────────────────────────────────────────┐
-       │                   MongoDB                        │
+       │                   MongoDB                       │
        │ - Stores filename, mean_f0, mean_rms, emotion   │
        │ - Queried by web app for live dashboard         │
        └─────────────────────────────────────────────────┘
 ```
+## Team Members
 
+| Name            | GitHub                                                              |
+| --------------- | ------------------------------------------------------------------  |
+| (Jayyuan)       | [https://github.com/qiexian-mf](https://github.com/qiexian-mf)      |
+| (Harrison Coon) |   [https://github.com/hoc2006-code](https://github.com/hoc2006-code)|
+| Jaylon McDuffie | [https://github.com/jm9908](https://github.com/jm9908)              |
+| (Sam Murshed)   | [https://github.com/SamMurshed](https://github.com/SamMurshed)      |
 ---
 
-# 🐳 Running the Project
+# Running the Project
 
 ## **1. Install Dependencies**
 
@@ -96,9 +68,7 @@ When running successfully:
 
 ## **3. View the Dashboard**
 
-Visit:
-
-👉 **[http://localhost:5050](http://localhost:5050)**
+Visit: **[http://localhost:5050](http://localhost:5050)**
 
 From here, you can:
 
@@ -110,37 +80,7 @@ From here, you can:
 
 ---
 
-# 📁 Repository Structure
-
-```
-4-containers-ocean/
-│
-├── machine-learning-client/
-│   ├── ml_client.py
-│   ├── requirements.txt
-│   ├── Dockerfile
-│   └── tests/
-│
-├── web-app/
-│   ├── app.py
-│   ├── templates/
-│   │   └── index.html
-│   ├── requirements.txt
-│   ├── Dockerfile
-│   └── tests/
-│
-├── docker-compose.yml
-├── run_tests.sh
-├── README.md
-└── .github/
-    └── workflows/
-        ├── ml-client-ci.yml
-        └── web-app-ci.yml
-```
-
----
-
-# 🧪 Testing
+# Testing
 
 ## **Run all tests locally**
 
@@ -167,7 +107,7 @@ This script:
 
 ---
 
-# 🚀 Continuous Integration (CI)
+# Continuous Integration (CI)
 
 Two GitHub Actions workflows run automatically:
 
@@ -187,7 +127,7 @@ CI triggers **on pull request merge to main**.
 
 ---
 
-# 🗃️ Database Setup (MongoDB)
+# Database Setup (MongoDB)
 
 MongoDB runs via Docker using:
 
@@ -199,21 +139,11 @@ mongodb:
   volumes:
     - mongo_data:/data/db
 ```
-
 No extra configuration is needed.
-
-If you want to inspect data:
-
-```bash
-docker exec -it emotion_mongodb mongosh
-
-use emotiondb
-db.emotion_results.find().pretty()
-```
 
 ---
 
-# 🔐 Environment Variables
+# Environment Variables
 
 Both services use environment variables from docker-compose:
 
@@ -236,37 +166,3 @@ A template for secrets should include:
 ```
 .env.example
 ```
-
-But nothing secret is required for this project.
-
----
-
-# 🎨 Features Added
-
-### ✔ Audio Recording via Browser
-
-### ✔ Shared Docker Volume for Audio Transfer
-
-### ✔ ML Feature Extraction (f0, RMS)
-
-### ✔ Emotion Classifier with Weighted Rules
-
-### ✔ MongoDB Storage
-
-### ✔ Real-Time Auto-Updating Dashboard
-
-### ✔ Emoji Mapping for Emotions
-
-### ✔ Dark Mode Toggle
-
-### ✔ Last Emotion Card
-
-### ✔ Fully Containerized System
-
-### ✔ CI Workflows for Both Subsystems
-
-### ✔ Unit Tests for ML + Web App
-
-### ✔ 80%+ Code Coverage Achieved
-
----
